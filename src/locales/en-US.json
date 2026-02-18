@@ -1,0 +1,109 @@
+{
+  "nav": {
+    "home": "Home",
+    "live": "LIVE",
+    "edu": "EDU",
+    "band": "BAND",
+    "pricing": "Pricing"
+  },
+  "lang": {
+    "label": "Language",
+    "pt": "Português (Brasil)",
+    "en": "English",
+    "es": "Español"
+  },
+  "hero": {
+    "headline": "Turn playlists into organized rehearsals and shows.",
+    "subheadline": "Choose your mode: stage, school, or band. One app to play better together.",
+    "cta_live": "Explore JamCircle LIVE",
+    "cta_edu": "Explore JamCircle EDU",
+    "cta_band": "Explore JamCircle BAND",
+    "cta_compare": "Compare Versions",
+    "mini_tagline": "Organize. Synchronize. Perform with confidence."
+  },
+  "cards": {
+    "live_title": "JamCircle LIVE",
+    "live_desc": "For freelance musicians and live bands.",
+    "live_body": "Organize your setlist, align roles, and run your show with confidence.",
+    "live_b1": "Stage Mode (clean live-performance interface)",
+    "live_b2": "Real-time Band Sync",
+    "live_b3": "Setlists with key, energy, and quick notes",
+    "live_b4": "Show history and rotation tracking",
+    "live_cta": "Explore LIVE",
+    "edu_title": "JamCircle EDU",
+    "edu_desc": "For music schools, teachers, and musical directors.",
+    "edu_body": "Turn setlists into structured rehearsals and track readiness before show day.",
+    "edu_b1": "Role assignment per song",
+    "edu_b2": "Class readiness overview",
+    "edu_b3": "Live rehearsal synchronization",
+    "edu_b4": "Clear repertoire organization",
+    "edu_cta": "Explore EDU",
+    "band_title": "JamCircle BAND",
+    "band_desc": "For bands that want tighter rehearsals and better collaboration.",
+    "band_body": "Plan focused rehearsals, track song progress, and keep everyone aligned.",
+    "band_b1": "Rehearsal planning tools",
+    "band_b2": "Song lifecycle (idea → in progress → gig-ready)",
+    "band_b3": "Defined musical roles",
+    "band_b4": "Sync mode for rehearsals and jams",
+    "band_cta": "Explore BAND"
+  },
+  "sync": {
+    "title": "Live synchronization for everyone",
+    "body_1": "One leader takes control.",
+    "body_2": "Every device follows the current song automatically.",
+    "line_1": "No shouting on stage.",
+    "line_2": "No \"what's next?\" confusion.",
+    "line_3": "No rehearsal drift.",
+    "line_4": "Works in LIVE, EDU, and BAND modes.",
+    "cta": "How it works"
+  },
+  "compare": {
+    "title": "Find the mode that fits you",
+    "row_1": "Create Shows / Rehearsals / Jams",
+    "row_2": "Setlist Organization",
+    "row_3": "Role Assignment per Song",
+    "row_4": "Notes per Song",
+    "row_5": "Stage Mode",
+    "row_6": "Class Readiness Overview",
+    "row_7": "Song Lifecycle Tracking",
+    "row_8": "Live Band Sync",
+    "row_9": "Multi-language Support"
+  },
+  "testimonials": {
+    "title": "What musicians say",
+    "t1_title": "Freelance Musician",
+    "t1_quote": "Stage Mode eliminated chaos on stage. I won't play a gig without it.",
+    "t2_title": "Music Director",
+    "t2_quote": "I finally know who's prepared before rehearsal even starts.",
+    "t3_title": "Band Leader",
+    "t3_quote": "Our rehearsals became focused and productive overnight."
+  },
+  "freemium": {
+    "title": "Start free. Upgrade when your band grows.",
+    "free_title": "Free",
+    "free_b1": "Setlist organization",
+    "free_b2": "Role assignment",
+    "free_b3": "Live Sync (limited monthly sessions)",
+    "pro_title": "Pro",
+    "pro_b1": "Unlimited Sync",
+    "pro_b2": "Unlimited participants",
+    "pro_b3": "Advanced insights",
+    "pro_b4": "Mode-specific premium features",
+    "cta": "View Plans"
+  },
+  "footer": {
+    "tagline": "JamCircle — play better, together."
+  },
+  "subpage": {
+    "live_hero": "JamCircle LIVE",
+    "live_sub": "Your stage. Your setlist. Total control.",
+    "live_cta": "Open LIVE prototype",
+    "edu_hero": "JamCircle EDU",
+    "edu_sub": "Structured rehearsals for music education.",
+    "edu_cta": "Open EDU prototype",
+    "band_hero": "JamCircle BAND",
+    "band_sub": "Better rehearsals. Clearer collaboration.",
+    "band_cta": "Open BAND prototype",
+    "back": "← Back to Home"
+  }
+}
