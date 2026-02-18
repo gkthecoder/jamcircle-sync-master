@@ -1,0 +1,109 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "live": "LIVE",
+    "edu": "EDU",
+    "band": "BAND",
+    "pricing": "Planes"
+  },
+  "lang": {
+    "label": "Idioma",
+    "pt": "Português (Brasil)",
+    "en": "English",
+    "es": "Español"
+  },
+  "hero": {
+    "headline": "Convierte playlists en ensayos y shows organizados.",
+    "subheadline": "Elige tu modo: escenario, escuela o banda. Una sola app para tocar mejor juntos.",
+    "cta_live": "Explorar JamCircle LIVE",
+    "cta_edu": "Explorar JamCircle EDU",
+    "cta_band": "Explorar JamCircle BAND",
+    "cta_compare": "Comparar versiones",
+    "mini_tagline": "Organiza. Sincroniza. Actúa con confianza."
+  },
+  "cards": {
+    "live_title": "JamCircle LIVE",
+    "live_desc": "Para músicos freelance y bandas que tocan en vivo.",
+    "live_body": "Organiza tu setlist, alinea roles y ejecuta tu show con confianza.",
+    "live_b1": "Modo Escenario (interfaz limpia para tocar en vivo)",
+    "live_b2": "Sincronización en tiempo real",
+    "live_b3": "Setlists con tonalidad, energía y notas rápidas",
+    "live_b4": "Historial de shows y rotación",
+    "live_cta": "Explorar LIVE",
+    "edu_title": "JamCircle EDU",
+    "edu_desc": "Para escuelas de música, profesores y directores musicales.",
+    "edu_body": "Convierte setlists en ensayos estructurados y sigue la preparación antes del show.",
+    "edu_b1": "Asignación de roles por canción",
+    "edu_b2": "Visión general de preparación del grupo",
+    "edu_b3": "Sincronización del ensayo en vivo",
+    "edu_b4": "Organización clara del repertorio",
+    "edu_cta": "Explorar EDU",
+    "band_title": "JamCircle BAND",
+    "band_desc": "Para bandas que quieren ensayar mejor y colaborar con claridad.",
+    "band_body": "Planifica ensayos con foco, sigue el progreso de las canciones y mantén a todos alineados.",
+    "band_b1": "Planificación de ensayos",
+    "band_b2": "Ciclo de vida de canciones (idea → en progreso → lista para show)",
+    "band_b3": "Roles musicales definidos",
+    "band_b4": "Modo Sync para ensayos y jams",
+    "band_cta": "Explorar BAND"
+  },
+  "sync": {
+    "title": "Sincronización en vivo para todos",
+    "body_1": "Un líder toma el control.",
+    "body_2": "Todos los dispositivos siguen la canción actual automáticamente.",
+    "line_1": "Sin gritos en el escenario.",
+    "line_2": "Sin \"¿cuál sigue?\".",
+    "line_3": "Sin ensayos que se desvían.",
+    "line_4": "Funciona en LIVE, EDU y BAND.",
+    "cta": "Cómo funciona"
+  },
+  "compare": {
+    "title": "Encuentra el modo ideal para ti",
+    "row_1": "Crear Shows / Ensayos / Jams",
+    "row_2": "Organización del setlist",
+    "row_3": "Roles por canción",
+    "row_4": "Notas por canción",
+    "row_5": "Modo Escenario",
+    "row_6": "Preparación del grupo",
+    "row_7": "Ciclo de vida de canciones",
+    "row_8": "Sincronización en vivo",
+    "row_9": "Soporte multilenguaje"
+  },
+  "testimonials": {
+    "title": "Lo que dicen los músicos",
+    "t1_title": "Músico freelance",
+    "t1_quote": "Modo Escenario eliminó el caos. No vuelvo a tocar sin esto.",
+    "t2_title": "Director musical",
+    "t2_quote": "Ahora sé quién está listo antes de empezar el ensayo.",
+    "t3_title": "Líder de banda",
+    "t3_quote": "Nuestros ensayos se volvieron más enfocados y productivos."
+  },
+  "freemium": {
+    "title": "Empieza gratis. Mejora cuando tu banda crece.",
+    "free_title": "Gratis",
+    "free_b1": "Organización de setlists",
+    "free_b2": "Asignación de roles",
+    "free_b3": "Sync en vivo (sesiones mensuales limitadas)",
+    "pro_title": "Pro",
+    "pro_b1": "Sync ilimitado",
+    "pro_b2": "Participantes ilimitados",
+    "pro_b3": "Insights avanzados",
+    "pro_b4": "Funciones premium por modo",
+    "cta": "Ver planes"
+  },
+  "footer": {
+    "tagline": "JamCircle — toca mejor, juntos."
+  },
+  "subpage": {
+    "live_hero": "JamCircle LIVE",
+    "live_sub": "Tu escenario. Tu setlist. Control total.",
+    "live_cta": "Abrir prototipo LIVE",
+    "edu_hero": "JamCircle EDU",
+    "edu_sub": "Ensayos estructurados para educación musical.",
+    "edu_cta": "Abrir prototipo EDU",
+    "band_hero": "JamCircle BAND",
+    "band_sub": "Ensayos mejores. Colaboración clara.",
+    "band_cta": "Abrir prototipo BAND",
+    "back": "← Volver al Inicio"
+  }
+}

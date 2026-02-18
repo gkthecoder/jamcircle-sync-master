@@ -1,0 +1,109 @@
+{
+  "nav": {
+    "home": "Início",
+    "live": "LIVE",
+    "edu": "EDU",
+    "band": "BAND",
+    "pricing": "Planos"
+  },
+  "lang": {
+    "label": "Idioma",
+    "pt": "Português (Brasil)",
+    "en": "English",
+    "es": "Español"
+  },
+  "hero": {
+    "headline": "Playlists viram ensaios e shows organizados.",
+    "subheadline": "Escolha seu modo: palco, escola ou banda. Um único app para tocar melhor juntos.",
+    "cta_live": "Explorar JamCircle LIVE",
+    "cta_edu": "Explorar JamCircle EDU",
+    "cta_band": "Explorar JamCircle BAND",
+    "cta_compare": "Ver comparação entre versões",
+    "mini_tagline": "Organize. Sincronize. Toque com confiança."
+  },
+  "cards": {
+    "live_title": "JamCircle LIVE",
+    "live_desc": "Para músicos freelancers e bandas que tocam ao vivo.",
+    "live_body": "Organize seu repertório, alinhe papéis e execute seu show com segurança.",
+    "live_b1": "Modo Palco (visual limpo para tocar ao vivo)",
+    "live_b2": "Sincronização da banda em tempo real",
+    "live_b3": "Repertório com tom, energia e notas rápidas",
+    "live_b4": "Histórico e rotação de músicas",
+    "live_cta": "Explorar LIVE",
+    "edu_title": "JamCircle EDU",
+    "edu_desc": "Para escolas de música, professores e diretores musicais.",
+    "edu_body": "Transforme repertórios em ensaios estruturados e acompanhe a prontidão antes do show.",
+    "edu_b1": "Atribuição de papéis por música",
+    "edu_b2": "Visão geral de prontidão da turma",
+    "edu_b3": "Sincronização ao vivo no ensaio",
+    "edu_b4": "Organização clara de repertórios",
+    "edu_cta": "Explorar EDU",
+    "band_title": "JamCircle BAND",
+    "band_desc": "Para bandas que querem ensaiar melhor e evoluir juntas.",
+    "band_body": "Planeje ensaios com foco, acompanhe o status das músicas e mantenha todos alinhados.",
+    "band_b1": "Planejamento de ensaio",
+    "band_b2": "Status da música (ideia → em progresso → pronta para show)",
+    "band_b3": "Colaboração com papéis definidos",
+    "band_b4": "Sincronização para ensaio e jam",
+    "band_cta": "Explorar BAND"
+  },
+  "sync": {
+    "title": "Sincronização ao vivo para todos",
+    "body_1": "Um líder assume o controle.",
+    "body_2": "Todos os dispositivos acompanham a música atual automaticamente.",
+    "line_1": "Sem gritos no palco.",
+    "line_2": "Sem \"qual é a próxima?\".",
+    "line_3": "Sem desencontro no ensaio.",
+    "line_4": "Funciona no LIVE, no EDU e no BAND.",
+    "cta": "Como funciona"
+  },
+  "compare": {
+    "title": "Escolha o modo que combina com você",
+    "row_1": "Criar Shows / Ensaios / Jams",
+    "row_2": "Organizar Repertório",
+    "row_3": "Papéis por Música",
+    "row_4": "Notas por Música",
+    "row_5": "Modo Palco",
+    "row_6": "Visão de Prontidão da Turma",
+    "row_7": "Status Evolutivo das Músicas",
+    "row_8": "Sincronização ao Vivo",
+    "row_9": "Localização (PT/EN/ES)"
+  },
+  "testimonials": {
+    "title": "O que músicos dizem",
+    "t1_title": "Músico Freelancer",
+    "t1_quote": "Finalmente um app que evita perrengue no palco. O Modo Palco salvou meu show.",
+    "t2_title": "Professor / Diretor Musical",
+    "t2_quote": "Consigo saber quem está realmente preparado antes do ensaio começar.",
+    "t3_title": "Líder de Banda",
+    "t3_quote": "Nosso ensaio ficou muito mais produtivo. Todo mundo chega sabendo o que precisa tocar."
+  },
+  "freemium": {
+    "title": "Comece grátis. Evolua quando sua banda evoluir.",
+    "free_title": "Grátis",
+    "free_b1": "Organização de repertório",
+    "free_b2": "Papéis por música",
+    "free_b3": "Sincronização ao vivo (limite mensal)",
+    "pro_title": "Pro",
+    "pro_b1": "Sincronização ilimitada",
+    "pro_b2": "Participantes ilimitados",
+    "pro_b3": "Insights avançados",
+    "pro_b4": "Recursos premium por modo",
+    "cta": "Ver Planos"
+  },
+  "footer": {
+    "tagline": "JamCircle — toque melhor, junto."
+  },
+  "subpage": {
+    "live_hero": "JamCircle LIVE",
+    "live_sub": "Seu palco. Seu repertório. Controle total.",
+    "live_cta": "Abrir protótipo LIVE",
+    "edu_hero": "JamCircle EDU",
+    "edu_sub": "Ensaios estruturados para educação musical.",
+    "edu_cta": "Abrir protótipo EDU",
+    "band_hero": "JamCircle BAND",
+    "band_sub": "Ensaios melhores. Colaboração clara.",
+    "band_cta": "Abrir protótipo BAND",
+    "back": "← Voltar ao Início"
+  }
+}
