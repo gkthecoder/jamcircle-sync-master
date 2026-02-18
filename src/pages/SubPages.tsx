@@ -10,14 +10,14 @@ interface SubPageProps {
 }
 
 const config = {
-  live: { colorClass: "text-live", borderClass: "border-live/30", bgClass: "bg-live/10", Icon: Zap, glowVar: "--live" },
-  edu: { colorClass: "text-edu", borderClass: "border-edu/30", bgClass: "bg-edu/10", Icon: GraduationCap, glowVar: "--edu" },
-  band: { colorClass: "text-band", borderClass: "border-band/30", bgClass: "bg-band/10", Icon: Users, glowVar: "--band" },
+  live: { colorClass: "text-live", borderClass: "border-live/30", bgClass: "bg-live/10", Icon: Zap, glowVar: "--live", protoUrl: "https://jam-circle-live.lovable.app" },
+  edu: { colorClass: "text-edu", borderClass: "border-edu/30", bgClass: "bg-edu/10", Icon: GraduationCap, glowVar: "--edu", protoUrl: "https://jamcircle-edu.lovable.app" },
+  band: { colorClass: "text-band", borderClass: "border-band/30", bgClass: "bg-band/10", Icon: Users, glowVar: "--band", protoUrl: "https://music-jam-hub.lovable.app" },
 };
 
 const SubPage = ({ mode }: SubPageProps) => {
   const { t } = useI18n();
-  const { colorClass, borderClass, bgClass, Icon } = config[mode];
+  const { colorClass, borderClass, bgClass, Icon, protoUrl } = config[mode];
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,11 +39,14 @@ const SubPage = ({ mode }: SubPageProps) => {
               {t(`subpage.${mode}_sub`)}
             </p>
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <button
+              <a
+                href={protoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`rounded-lg border ${borderClass} ${bgClass} px-8 py-3 text-sm font-semibold ${colorClass} transition-all hover:opacity-80`}
               >
                 {t(`subpage.${mode}_cta`)}
-              </button>
+              </a>
               <Link
                 to="/"
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
