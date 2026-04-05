@@ -261,7 +261,7 @@ className='text-white/40 hover:text-white h-8 px-2'>
 </div>
 </nav>
 
-```
+
   <main className='max-w-4xl mx-auto px-6 py-10'>
     <AnimatePresence mode='wait'>
 
