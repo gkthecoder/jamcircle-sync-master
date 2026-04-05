@@ -377,7 +377,7 @@ className='text-white/40 hover:text-white h-8 px-2'>
     </AnimatePresence>
   </main>
 </div>
-```
+
 
 );
 }
