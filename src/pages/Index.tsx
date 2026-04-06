@@ -1,9 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSpotifyAuth } from '@/hooks/useSpotifyAuth';
-import { getUserPlaylists, getPlaylistTracks, type SpotifyPlaylist, type EnrichedTrack } from '@/lib/spotify';
+import { getUserPlaylists, getPlaylistTracks, clearAccessToken, type SpotifyPlaylist, type EnrichedTrack } from '@/lib/spotify';
 import { generateSetlist, saveSetlist, downloadSetlist, type GeneratedSetlist, type SetlistGenerationOptions } from '@/lib/setlist';
 
 type Step = 'connect' | 'playlist' | 'configure' | 'setlist';
+
+function handleTryAgain() {
+  localStorage.removeItem('spotify_access_token');
+  localStorage.removeItem('spotify_code_verifier');
+  window.location.reload();
+}
 
 export default function Index() {
   const { status, user, error: authError, login, logout } = useSpotifyAuth();
@@ -24,11 +30,14 @@ export default function Index() {
   const loadPlaylists = useCallback(async () => {
     setLoading(true);
     setError(null);
+    console.log('[JamCircle] 📋 Fetching playlists...');
     try {
       const p = await getUserPlaylists();
+      console.log('[JamCircle] ✅ Playlists loaded:', p.length, 'playlists');
       setPlaylists(p);
       setStep('playlist');
     } catch (e) {
+      console.error('[JamCircle] ❌ Failed to load playlists:', e);
       setError(e instanceof Error ? e.message : 'Failed to load playlists');
     } finally {
       setLoading(false);
@@ -84,16 +93,38 @@ export default function Index() {
     }
   }, [status, step, loading, playlists.length, loadPlaylists]);
 
-  // Show a full-screen loading state while processing OAuth callback
+  // ── Full-screen: Loading (token exchange in progress) ──
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
         <div className="w-10 h-10 border-2 border-[#22c55e] border-t-transparent rounded-full animate-spin" />
-        <p className="text-neutral-400">Connecting to Spotify...</p>
+        <p className="text-neutral-400">Connecting to Spotify…</p>
       </div>
     );
   }
 
+  // ── Full-screen: Auth error with Try Again ──
+  if (status === 'error') {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-6 px-6">
+        <div className="w-16 h-16 rounded-full bg-red-900/20 flex items-center justify-center">
+          <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold">Authentication Failed</h2>
+        <p className="text-red-400 text-sm text-center max-w-md">{authError || 'Something went wrong while connecting to Spotify.'}</p>
+        <button
+          onClick={handleTryAgain}
+          className="bg-[#22c55e] hover:bg-[#16a34a] text-black font-semibold px-8 py-3 rounded-full transition"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  const displayError = error || authError;
   const stepIndex = ['connect', 'playlist', 'configure', 'setlist'].indexOf(step);
 
   return (
@@ -123,10 +154,16 @@ export default function Index() {
         </div>
       </div>
 
-      {(error || authError) && (
+      {displayError && (
         <div className="max-w-2xl mx-auto px-6 pb-4">
-          <div className="bg-red-900/30 border border-red-800 rounded-lg px-4 py-3 text-sm text-red-300">
-            {error || authError}
+          <div className="bg-red-900/30 border border-red-800 rounded-lg px-4 py-3 flex items-center justify-between gap-3">
+            <p className="text-sm text-red-300">{displayError}</p>
+            <button
+              onClick={handleTryAgain}
+              className="shrink-0 text-xs font-semibold text-red-300 border border-red-700 rounded-lg px-3 py-1.5 hover:bg-red-900/40 transition"
+            >
+              Try Again
+            </button>
           </div>
         </div>
       )}
@@ -158,8 +195,9 @@ export default function Index() {
             <h2 className="text-2xl font-bold mb-2">Choose a Playlist</h2>
             <p className="text-neutral-400 mb-6">Select a playlist to build your setlist from.</p>
             {loading ? (
-              <div className="flex justify-center py-12">
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
                 <div className="w-8 h-8 border-2 border-[#22c55e] border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm text-neutral-500">Loading playlists…</p>
               </div>
             ) : (
               <div className="space-y-2">
