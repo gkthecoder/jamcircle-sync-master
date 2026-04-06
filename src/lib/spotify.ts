@@ -8,86 +8,103 @@ const SCOPES = [
   'user-read-email',
 ].join(' ');
 
-/* ── Implicit Grant Auth ── */
+/* ── PKCE Helpers ── */
 
-export function initiateSpotifyLogin(): void {
+function generateCodeVerifier(length = 128): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const arr = new Uint8Array(length);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (b) => chars[b % chars.length]).join('');
+}
+
+async function generateCodeChallenge(verifier: string): Promise<string> {
+  const data = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+/* ── Auth Flow ── */
+
+export async function initiateSpotifyLogin(): Promise<void> {
+  const verifier = generateCodeVerifier();
+  const challenge = await generateCodeChallenge(verifier);
+  localStorage.setItem('spotify_code_verifier', verifier);
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
-    response_type: 'token',
+    response_type: 'code',
     redirect_uri: REDIRECT_URI,
     scope: SCOPES,
+    code_challenge_method: 'S256',
+    code_challenge: challenge,
     show_dialog: 'false',
   });
   window.location.href = 'https://accounts.spotify.com/authorize?' + params;
 }
 
-/**
- * Parse the hash fragment returned by Spotify's Implicit Grant flow.
- * Returns the access token and expiry, or null if not present.
- */
-export function parseHashToken(): { accessToken: string; expiresAt: number } | null {
-  const hash = window.location.hash.substring(1);
-  if (!hash) return null;
-  const params = new URLSearchParams(hash);
-  const accessToken = params.get('access_token');
-  const expiresIn = params.get('expires_in');
-  if (!accessToken) return null;
-  return {
-    accessToken,
-    expiresAt: Date.now() + (expiresIn ? parseInt(expiresIn, 10) * 1000 : 3600_000),
-  };
-}
+export async function exchangeCodeForToken(code: string): Promise<string> {
+  const verifier = localStorage.getItem('spotify_code_verifier');
+  if (!verifier) throw new Error('Code verifier missing – please try logging in again.');
 
-export function getHashError(): string | null {
-  const hash = window.location.hash.substring(1);
-  if (!hash) return null;
-  const params = new URLSearchParams(hash);
-  return params.get('error');
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: CLIENT_ID,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: REDIRECT_URI,
+      code_verifier: verifier,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as any).error_description || 'Token exchange failed');
+  }
+
+  const data = await res.json();
+  localStorage.removeItem('spotify_code_verifier');
+  localStorage.setItem('spotify_access_token', data.access_token);
+  return data.access_token as string;
 }
 
 /* ── Token Storage ── */
 
-export interface StoredToken {
-  accessToken: string;
-  expiresAt: number;
+export function getAccessToken(): string | null {
+  return localStorage.getItem('spotify_access_token');
 }
 
-const TOKEN_KEY = 'jamcircle_spotify_token';
-
-export function persistToken(token: StoredToken): void {
-  localStorage.setItem(TOKEN_KEY, JSON.stringify(token));
+export function clearAccessToken(): void {
+  localStorage.removeItem('spotify_access_token');
 }
 
-export function loadToken(): StoredToken | null {
-  try {
-    const raw = localStorage.getItem(TOKEN_KEY);
-    if (!raw) return null;
-    const token: StoredToken = JSON.parse(raw);
-    // Treat expired tokens as absent
-    if (Date.now() > token.expiresAt - 60_000) {
-      clearToken();
-      return null;
-    }
-    return token;
-  } catch {
-    return null;
-  }
+/* ── URL Helpers ── */
+
+export function getCodeFromUrl(): string | null {
+  return new URLSearchParams(window.location.search).get('code');
 }
 
-export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
+export function getErrorFromUrl(): string | null {
+  return new URLSearchParams(window.location.search).get('error');
 }
 
-/* ── Spotify API helpers ── */
+export function clearUrlParams(): void {
+  window.history.replaceState({}, '', window.location.pathname);
+}
+
+/* ── Spotify API ── */
 
 async function spotifyFetch<T>(endpoint: string): Promise<T> {
-  const token = loadToken();
+  const token = getAccessToken();
   if (!token) throw new Error('Not authenticated');
   const res = await fetch('https://api.spotify.com/v1' + endpoint, {
-    headers: { Authorization: 'Bearer ' + token.accessToken },
+    headers: { Authorization: 'Bearer ' + token },
   });
   if (res.status === 401) {
-    clearToken();
+    clearAccessToken();
     throw new Error('Session expired. Please reconnect Spotify.');
   }
   if (!res.ok) {
@@ -119,7 +136,7 @@ export interface SpotifyPlaylist {
 
 export async function getUserPlaylists(limit = 50): Promise<SpotifyPlaylist[]> {
   const data = await spotifyFetch<{ items: SpotifyPlaylist[] }>(
-    '/me/playlists?limit=' + limit
+    '/me/playlists?limit=' + limit,
   );
   return data.items.filter(Boolean);
 }
@@ -128,10 +145,7 @@ export interface SpotifyTrack {
   id: string;
   name: string;
   artists: { name: string }[];
-  album: {
-    name: string;
-    images: { url: string }[];
-  };
+  album: { name: string; images: { url: string }[] };
   duration_ms: number;
   preview_url: string | null;
 }
@@ -158,26 +172,26 @@ const KEY_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', '
 
 export async function getPlaylistTracks(playlistId: string): Promise<EnrichedTrack[]> {
   const data = await spotifyFetch<{ items: { track: SpotifyTrack | null }[] }>(
-    '/playlists/' + playlistId + '/tracks?limit=100'
+    '/playlists/' + playlistId + '/tracks?limit=100',
   );
-  const tracks = data.items
-    .map((i) => i.track)
-    .filter((t): t is SpotifyTrack => !!t?.id);
+  const tracks = data.items.map((i) => i.track).filter((t): t is SpotifyTrack => !!t?.id);
   if (tracks.length === 0) return [];
+
   const ids = tracks.map((t) => t.id).join(',');
   let featuresMap: Record<string, AudioFeatures> = {};
   try {
     const featData = await spotifyFetch<{ audio_features: (AudioFeatures | null)[] }>(
-      '/audio-features?ids=' + ids
+      '/audio-features?ids=' + ids,
     );
     featuresMap = Object.fromEntries(
       (featData.audio_features ?? [])
         .filter((f): f is AudioFeatures => !!f)
-        .map((f) => [f.id, f])
+        .map((f) => [f.id, f]),
     );
   } catch {
     // continue without audio features
   }
+
   return tracks.map((track) => {
     const f = featuresMap[track.id];
     return {
