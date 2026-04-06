@@ -35,11 +35,11 @@ export default function Index() {
     }
   }, []);
 
-  const handleConnect = async () => {
+  const handleConnect = () => {
     if (status === 'authenticated') {
-      await loadPlaylists();
+      loadPlaylists();
     } else {
-      await login();
+      login();
     }
   };
 
