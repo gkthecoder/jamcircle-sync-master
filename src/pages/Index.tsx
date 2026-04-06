@@ -82,7 +82,17 @@ export default function Index() {
     if (status === 'authenticated' && step === 'connect' && !loading && playlists.length === 0) {
       loadPlaylists();
     }
-  }, [status, step, loading, playlists.length]);
+  }, [status, step, loading, playlists.length, loadPlaylists]);
+
+  // Show a full-screen loading state while processing OAuth callback
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
+        <div className="w-10 h-10 border-2 border-[#22c55e] border-t-transparent rounded-full animate-spin" />
+        <p className="text-neutral-400">Connecting to Spotify...</p>
+      </div>
+    );
+  }
 
   const stepIndex = ['connect', 'playlist', 'configure', 'setlist'].indexOf(step);
 
