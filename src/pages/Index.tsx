@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSpotifyAuth } from '@/hooks/useSpotifyAuth';
 import { getUserPlaylists, getPlaylistTracks, type SpotifyPlaylist, type EnrichedTrack } from '@/lib/spotify';
 import { generateSetlist, saveSetlist, downloadSetlist, type GeneratedSetlist, type SetlistGenerationOptions } from '@/lib/setlist';
@@ -21,7 +21,7 @@ export default function Index() {
 
   const [setlist, setSetlist] = useState<GeneratedSetlist | null>(null);
 
-  const loadPlaylists = async () => {
+  const loadPlaylists = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -33,7 +33,7 @@ export default function Index() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleConnect = async () => {
     if (status === 'authenticated') {
@@ -82,7 +82,17 @@ export default function Index() {
     if (status === 'authenticated' && step === 'connect' && !loading && playlists.length === 0) {
       loadPlaylists();
     }
-  }, [status, step, loading, playlists.length]);
+  }, [status, step, loading, playlists.length, loadPlaylists]);
+
+  // Show a full-screen loading state while processing OAuth callback
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
+        <div className="w-10 h-10 border-2 border-[#22c55e] border-t-transparent rounded-full animate-spin" />
+        <p className="text-neutral-400">Connecting to Spotify...</p>
+      </div>
+    );
+  }
 
   const stepIndex = ['connect', 'playlist', 'configure', 'setlist'].indexOf(step);
 
@@ -135,10 +145,10 @@ export default function Index() {
             </p>
             <button
               onClick={handleConnect}
-              disabled={loading || status === 'loading'}
+              disabled={loading}
               className="bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-50 text-black font-semibold px-8 py-3 rounded-full transition"
             >
-              {loading || status === 'loading' ? 'Connecting...' : 'Connect with Spotify'}
+              {loading ? 'Connecting...' : 'Connect with Spotify'}
             </button>
           </div>
         )}
