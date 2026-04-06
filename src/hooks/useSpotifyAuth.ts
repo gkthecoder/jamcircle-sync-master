@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   exchangeCodeForToken,
   getCurrentUser,
@@ -22,6 +22,7 @@ export function useSpotifyAuth(): UseSpotifyAuthReturn {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const processingRef = useRef(false);
 
   const fetchUser = useCallback(async () => {
     try {
@@ -36,28 +37,46 @@ export function useSpotifyAuth(): UseSpotifyAuthReturn {
   }, []);
 
   useEffect(() => {
+    // Prevent double-processing (React StrictMode or re-renders)
+    if (processingRef.current) return;
+
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const errorParam = params.get('error');
+
+    // Clean URL immediately if auth params present
     if (code || errorParam) {
       window.history.replaceState({}, '', window.location.pathname);
     }
+
     if (errorParam) {
       setStatus('unauthenticated');
       setError('Spotify login was cancelled or denied.');
       return;
     }
+
     if (code) {
+      processingRef.current = true;
+      console.log('[JamCircle] Processing Spotify auth callback...');
+      
       exchangeCodeForToken(code)
-        .then(() => fetchUser())
+        .then(() => {
+          console.log('[JamCircle] Token exchange successful, fetching user...');
+          return fetchUser();
+        })
         .catch((e) => {
+          console.error('[JamCircle] Auth callback failed:', e);
           setStatus('error');
-          setError(e instanceof Error ? e.message : 'Failed to authenticate');
+          setError(e instanceof Error ? e.message : 'Failed to authenticate with Spotify');
+          processingRef.current = false;
         });
       return;
     }
+
+    // No code in URL — check for existing session
     const tokens = loadTokens();
     if (tokens) {
+      console.log('[JamCircle] Found existing tokens, fetching user...');
       fetchUser();
     } else {
       setStatus('unauthenticated');
@@ -73,6 +92,7 @@ export function useSpotifyAuth(): UseSpotifyAuthReturn {
     clearTokens();
     setUser(null);
     setStatus('unauthenticated');
+    processingRef.current = false;
   }, []);
 
   return { status, user, error, login, logout };
