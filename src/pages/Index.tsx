@@ -21,7 +21,7 @@ export default function Index() {
 
   const [setlist, setSetlist] = useState<GeneratedSetlist | null>(null);
 
-  const loadPlaylists = async () => {
+  const loadPlaylists = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -33,7 +33,7 @@ export default function Index() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleConnect = async () => {
     if (status === 'authenticated') {
