@@ -145,10 +145,10 @@ export default function Index() {
             </p>
             <button
               onClick={handleConnect}
-              disabled={loading || status === 'loading'}
+              disabled={loading}
               className="bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-50 text-black font-semibold px-8 py-3 rounded-full transition"
             >
-              {loading || status === 'loading' ? 'Connecting...' : 'Connect with Spotify'}
+              {loading ? 'Connecting...' : 'Connect with Spotify'}
             </button>
           </div>
         )}
