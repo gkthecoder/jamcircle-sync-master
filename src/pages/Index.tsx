@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSpotifyAuth } from '@/hooks/useSpotifyAuth';
 import { getUserPlaylists, getPlaylistTracks, type SpotifyPlaylist, type EnrichedTrack } from '@/lib/spotify';
 import { generateSetlist, saveSetlist, downloadSetlist, type GeneratedSetlist, type SetlistGenerationOptions } from '@/lib/setlist';
