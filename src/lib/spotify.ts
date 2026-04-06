@@ -4,138 +4,90 @@ const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI as string;
 const SCOPES = [
   'playlist-read-private',
   'playlist-read-collaborative',
-  'user-library-read',
   'user-read-private',
   'user-read-email',
 ].join(' ');
 
-function generateVerifier(length = 128): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-  const arr = new Uint8Array(length);
-  crypto.getRandomValues(arr);
-  return Array.from(arr, (b) => chars[b % chars.length]).join('');
-}
+/* ── Implicit Grant Auth ── */
 
-async function generateChallenge(verifier: string): Promise<string> {
-  const data = new TextEncoder().encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCharCode(...new Uint8Array(digest)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
-
-export async function initiateSpotifyLogin(): Promise<void> {
-  const verifier = generateVerifier();
-  const challenge = await generateChallenge(verifier);
-  localStorage.setItem('spotify_pkce_verifier', verifier);
+export function initiateSpotifyLogin(): void {
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
-    response_type: 'code',
+    response_type: 'token',
     redirect_uri: REDIRECT_URI,
     scope: SCOPES,
-    code_challenge_method: 'S256',
-    code_challenge: challenge,
     show_dialog: 'false',
   });
   window.location.href = 'https://accounts.spotify.com/authorize?' + params;
 }
 
-export async function exchangeCodeForToken(code: string): Promise<SpotifyTokens> {
-  const verifier = localStorage.getItem('spotify_pkce_verifier');
-  if (!verifier) throw new Error('PKCE verifier missing from session');
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: CLIENT_ID,
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: REDIRECT_URI,
-      code_verifier: verifier,
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error_description || 'Token exchange failed');
-  }
-  const data = await res.json();
-  localStorage.removeItem('spotify_pkce_verifier');
-  const tokens: SpotifyTokens = {
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token,
-    expiresAt: Date.now() + data.expires_in * 1000,
+/**
+ * Parse the hash fragment returned by Spotify's Implicit Grant flow.
+ * Returns the access token and expiry, or null if not present.
+ */
+export function parseHashToken(): { accessToken: string; expiresAt: number } | null {
+  const hash = window.location.hash.substring(1);
+  if (!hash) return null;
+  const params = new URLSearchParams(hash);
+  const accessToken = params.get('access_token');
+  const expiresIn = params.get('expires_in');
+  if (!accessToken) return null;
+  return {
+    accessToken,
+    expiresAt: Date.now() + (expiresIn ? parseInt(expiresIn, 10) * 1000 : 3600_000),
   };
-  persistTokens(tokens);
-  return tokens;
 }
 
-export async function refreshAccessToken(refreshToken: string): Promise<SpotifyTokens> {
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: CLIENT_ID,
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-    }),
-  });
-  if (!res.ok) throw new Error('Token refresh failed');
-  const data = await res.json();
-  const tokens: SpotifyTokens = {
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token ?? refreshToken,
-    expiresAt: Date.now() + data.expires_in * 1000,
-  };
-  persistTokens(tokens);
-  return tokens;
+export function getHashError(): string | null {
+  const hash = window.location.hash.substring(1);
+  if (!hash) return null;
+  const params = new URLSearchParams(hash);
+  return params.get('error');
 }
 
-export interface SpotifyTokens {
+/* ── Token Storage ── */
+
+export interface StoredToken {
   accessToken: string;
-  refreshToken: string;
   expiresAt: number;
 }
 
-const TOKEN_KEY = 'jamcircle_spotify_tokens';
+const TOKEN_KEY = 'jamcircle_spotify_token';
 
-export function persistTokens(tokens: SpotifyTokens): void {
-  localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
+export function persistToken(token: StoredToken): void {
+  localStorage.setItem(TOKEN_KEY, JSON.stringify(token));
 }
 
-export function loadTokens(): SpotifyTokens | null {
+export function loadToken(): StoredToken | null {
   try {
     const raw = localStorage.getItem(TOKEN_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const token: StoredToken = JSON.parse(raw);
+    // Treat expired tokens as absent
+    if (Date.now() > token.expiresAt - 60_000) {
+      clearToken();
+      return null;
+    }
+    return token;
   } catch {
     return null;
   }
 }
 
-export function clearTokens(): void {
+export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-export function isTokenExpired(tokens: SpotifyTokens): boolean {
-  return Date.now() > tokens.expiresAt - 60000;
-}
-
-async function getValidToken(): Promise<string> {
-  let tokens = loadTokens();
-  if (!tokens) throw new Error('Not authenticated');
-  if (isTokenExpired(tokens)) {
-    tokens = await refreshAccessToken(tokens.refreshToken);
-  }
-  return tokens.accessToken;
-}
+/* ── Spotify API helpers ── */
 
 async function spotifyFetch<T>(endpoint: string): Promise<T> {
-  const token = await getValidToken();
+  const token = loadToken();
+  if (!token) throw new Error('Not authenticated');
   const res = await fetch('https://api.spotify.com/v1' + endpoint, {
-    headers: { Authorization: 'Bearer ' + token },
+    headers: { Authorization: 'Bearer ' + token.accessToken },
   });
   if (res.status === 401) {
-    clearTokens();
+    clearToken();
     throw new Error('Session expired. Please reconnect Spotify.');
   }
   if (!res.ok) {
