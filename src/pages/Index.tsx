@@ -78,9 +78,11 @@ export default function Index() {
     }
   };
 
-  if (status === 'authenticated' && step === 'connect' && !loading && playlists.length === 0) {
-    loadPlaylists();
-  }
+  useEffect(() => {
+    if (status === 'authenticated' && step === 'connect' && !loading && playlists.length === 0) {
+      loadPlaylists();
+    }
+  }, [status, step, loading, playlists.length]);
 
   const stepIndex = ['connect', 'playlist', 'configure', 'setlist'].indexOf(step);
 
