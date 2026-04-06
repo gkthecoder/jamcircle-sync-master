@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  parseHashToken,
-  getHashError,
+  getCodeFromUrl,
+  getErrorFromUrl,
+  clearUrlParams,
+  exchangeCodeForToken,
+  getAccessToken,
+  clearAccessToken,
   getCurrentUser,
-  loadToken,
-  persistToken,
-  clearToken,
   initiateSpotifyLogin,
   type SpotifyUser,
 } from '@/lib/spotify';
@@ -16,7 +17,7 @@ export interface UseSpotifyAuthReturn {
   status: AuthStatus;
   user: SpotifyUser | null;
   error: string | null;
-  login: () => void;
+  login: () => Promise<void>;
   logout: () => void;
 }
 
@@ -32,7 +33,7 @@ export function useSpotifyAuth(): UseSpotifyAuthReturn {
       setUser(u);
       setStatus('authenticated');
     } catch (e) {
-      clearToken();
+      clearAccessToken();
       setStatus('unauthenticated');
       setError(e instanceof Error ? e.message : 'Authentication failed');
     }
@@ -41,43 +42,52 @@ export function useSpotifyAuth(): UseSpotifyAuthReturn {
   useEffect(() => {
     if (processingRef.current) return;
 
-    // Check for error in hash
-    const hashError = getHashError();
-    if (hashError) {
-      window.history.replaceState({}, '', window.location.pathname);
+    // 1. Check for error from Spotify
+    const urlError = getErrorFromUrl();
+    if (urlError) {
+      clearUrlParams();
       setStatus('unauthenticated');
       setError('Spotify login was cancelled or denied.');
       return;
     }
 
-    // Check for access_token in hash (Implicit Grant callback)
-    const hashToken = parseHashToken();
-    if (hashToken) {
+    // 2. Check for authorization code in URL
+    const code = getCodeFromUrl();
+    if (code) {
       processingRef.current = true;
-      window.history.replaceState({}, '', window.location.pathname);
-      persistToken(hashToken);
-      console.log('[JamCircle] Token received from Spotify, fetching user...');
-      fetchUser();
+      clearUrlParams();
+      console.log('[JamCircle] Auth code received, exchanging for token...');
+      exchangeCodeForToken(code)
+        .then(() => {
+          console.log('[JamCircle] Token stored, fetching user...');
+          return fetchUser();
+        })
+        .catch((e) => {
+          console.error('[JamCircle] Token exchange failed:', e);
+          setStatus('error');
+          setError(e instanceof Error ? e.message : 'Failed to authenticate');
+          processingRef.current = false;
+        });
       return;
     }
 
-    // No hash — check for existing stored token
-    const existing = loadToken();
-    if (existing) {
-      console.log('[JamCircle] Found existing token, fetching user...');
+    // 3. No code – check for existing token
+    const token = getAccessToken();
+    if (token) {
+      console.log('[JamCircle] Existing token found, verifying...');
       fetchUser();
     } else {
       setStatus('unauthenticated');
     }
   }, [fetchUser]);
 
-  const login = useCallback(() => {
+  const login = useCallback(async () => {
     setError(null);
-    initiateSpotifyLogin();
+    await initiateSpotifyLogin();
   }, []);
 
   const logout = useCallback(() => {
-    clearToken();
+    clearAccessToken();
     setUser(null);
     setStatus('unauthenticated');
     processingRef.current = false;
