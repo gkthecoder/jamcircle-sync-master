@@ -28,7 +28,7 @@ async function generateChallenge(verifier: string): Promise<string> {
 export async function initiateSpotifyLogin(): Promise<void> {
   const verifier = generateVerifier();
   const challenge = await generateChallenge(verifier);
-  sessionStorage.setItem('spotify_pkce_verifier', verifier);
+  localStorage.setItem('spotify_pkce_verifier', verifier);
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     response_type: 'code',
@@ -42,7 +42,7 @@ export async function initiateSpotifyLogin(): Promise<void> {
 }
 
 export async function exchangeCodeForToken(code: string): Promise<SpotifyTokens> {
-  const verifier = sessionStorage.getItem('spotify_pkce_verifier');
+  const verifier = localStorage.getItem('spotify_pkce_verifier');
   if (!verifier) throw new Error('PKCE verifier missing from session');
   const res = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
@@ -60,7 +60,7 @@ export async function exchangeCodeForToken(code: string): Promise<SpotifyTokens>
     throw new Error(err.error_description || 'Token exchange failed');
   }
   const data = await res.json();
-  sessionStorage.removeItem('spotify_pkce_verifier');
+  localStorage.removeItem('spotify_pkce_verifier');
   const tokens: SpotifyTokens = {
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
