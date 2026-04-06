@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from 'react';
 import {
   exchangeCodeForToken,
   getCurrentUser,
@@ -6,9 +6,9 @@ import {
   clearTokens,
   initiateSpotifyLogin,
   type SpotifyUser,
-} from "@/lib/spotify";
+} from '@/lib/spotify';
 
-export type AuthStatus = "loading" | "unauthenticated" | "authenticated" | "error";
+export type AuthStatus = 'loading' | 'unauthenticated' | 'authenticated' | 'error';
 
 export interface UseSpotifyAuthReturn {
   status: AuthStatus;
@@ -19,7 +19,7 @@ export interface UseSpotifyAuthReturn {
 }
 
 export function useSpotifyAuth(): UseSpotifyAuthReturn {
-  const [status, setStatus] = useState<AuthStatus>("loading");
+  const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,47 +27,40 @@ export function useSpotifyAuth(): UseSpotifyAuthReturn {
     try {
       const u = await getCurrentUser();
       setUser(u);
-      setStatus("authenticated");
+      setStatus('authenticated');
     } catch (e) {
       clearTokens();
-      setStatus("unauthenticated");
-      setError(e instanceof Error ? e.message : "Authentication failed");
+      setStatus('unauthenticated');
+      setError(e instanceof Error ? e.message : 'Authentication failed');
     }
   }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    const errorParam = params.get("error");
-
-    // Clean the URL immediately
+    const code = params.get('code');
+    const errorParam = params.get('error');
     if (code || errorParam) {
-      window.history.replaceState({}, "", window.location.pathname);
+      window.history.replaceState({}, '', window.location.pathname);
     }
-
     if (errorParam) {
-      setStatus("unauthenticated");
-      setError("Spotify login was cancelled or denied.");
+      setStatus('unauthenticated');
+      setError('Spotify login was cancelled or denied.');
       return;
     }
-
     if (code) {
-      // Exchange the auth code for tokens
       exchangeCodeForToken(code)
         .then(() => fetchUser())
         .catch((e) => {
-          setStatus("error");
-          setError(e instanceof Error ? e.message : "Failed to authenticate");
+          setStatus('error');
+          setError(e instanceof Error ? e.message : 'Failed to authenticate');
         });
       return;
     }
-
-    // Check for existing valid session
     const tokens = loadTokens();
     if (tokens) {
       fetchUser();
     } else {
-      setStatus("unauthenticated");
+      setStatus('unauthenticated');
     }
   }, [fetchUser]);
 
@@ -79,7 +72,7 @@ export function useSpotifyAuth(): UseSpotifyAuthReturn {
   const logout = useCallback(() => {
     clearTokens();
     setUser(null);
-    setStatus("unauthenticated");
+    setStatus('unauthenticated');
   }, []);
 
   return { status, user, error, login, logout };
