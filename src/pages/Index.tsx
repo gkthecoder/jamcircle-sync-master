@@ -20,8 +20,9 @@ async function generateChallenge(verifier: string): Promise<string> {
 }
 
 type SpotifyProfile = { display_name: string; images: { url: string }[] };
+type Track = { name: string; artists: { name: string }[]; album: { images: { url: string }[] } };
 
-type Status = "idle" | "redirecting" | "success" | "exchanging" | "profile" | "error";
+type Status = "idle" | "redirecting" | "success" | "exchanging" | "profile" | "playlists" | "error";
 
 export default function Index() {
   const [status, setStatus] = useState<Status>("idle");
