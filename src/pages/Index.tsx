@@ -30,6 +30,9 @@ export default function Index() {
   const [elapsed, setElapsed] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [profile, setProfile] = useState<SpotifyProfile | null>(null);
+  const [playlistUrl, setPlaylistUrl] = useState("");
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [loadingTracks, setLoadingTracks] = useState(false);
   const processed = useRef(false);
 
   useEffect(() => {
