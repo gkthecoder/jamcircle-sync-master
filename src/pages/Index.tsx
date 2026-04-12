@@ -65,7 +65,8 @@ export default function Index() {
     const challenge = await generateChallenge(verifier);
     localStorage.setItem(VERIFIER_KEY, verifier);
     localStorage.setItem(START_KEY, Date.now().toString());
-    const url = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=user-read-private&code_challenge_method=S256&code_challenge=${challenge}`;
+    const scopes = "playlist-read-private playlist-read-collaborative user-read-private user-read-email";
+    const url = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(scopes)}&code_challenge_method=S256&code_challenge=${challenge}`;
     setStatus("redirecting");
     window.location.href = url;
   }
