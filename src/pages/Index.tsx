@@ -4,6 +4,7 @@ const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI;
 const VERIFIER_KEY = "spotify_code_verifier";
 const START_KEY = "spotify_auth_start";
+const TOKEN_KEY = "spotify_access_token";
 
 function generateVerifier(len = 128): string {
   const arr = new Uint8Array(len);
@@ -18,11 +19,16 @@ async function generateChallenge(verifier: string): Promise<string> {
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+type SpotifyProfile = { display_name: string; images: { url: string }[] };
+
+type Status = "idle" | "redirecting" | "success" | "exchanging" | "profile" | "error";
+
 export default function Index() {
-  const [status, setStatus] = useState<"idle" | "redirecting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<Status>("idle");
   const [code, setCode] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
+  const [profile, setProfile] = useState<SpotifyProfile | null>(null);
   const processed = useRef(false);
 
   useEffect(() => {
@@ -46,8 +52,6 @@ export default function Index() {
       setCode(authCode);
       setElapsed(ms);
       setStatus("success");
-      localStorage.removeItem(VERIFIER_KEY);
-      localStorage.removeItem(START_KEY);
       window.history.replaceState({}, "", "/");
     }
   }, []);
@@ -62,15 +66,67 @@ export default function Index() {
     window.location.href = url;
   }
 
+  async function exchangeAndFetchProfile() {
+    setStatus("exchanging");
+    const verifier = localStorage.getItem(VERIFIER_KEY);
+    console.log("[PKCE] Exchanging code for token…", { code: code.slice(0, 20) + "…", hasVerifier: !!verifier });
+
+    try {
+      const res = await fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: CLIENT_ID,
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: REDIRECT_URI,
+          code_verifier: verifier || "",
+        }),
+      });
+
+      const data = await res.json();
+      console.log("[PKCE] Token response status:", res.status);
+
+      if (!res.ok) {
+        throw new Error(data.error_description || data.error || "Token exchange failed");
+      }
+
+      const token = data.access_token;
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.removeItem(VERIFIER_KEY);
+      localStorage.removeItem(START_KEY);
+      console.log("[PKCE] Token stored, fetching profile…");
+
+      const meRes = await fetch("https://api.spotify.com/v1/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const meData = await meRes.json();
+      console.log("[PKCE] Profile response:", meData.display_name);
+
+      if (!meRes.ok) {
+        throw new Error(meData.error?.message || "Failed to fetch profile");
+      }
+
+      setProfile(meData);
+      setStatus("profile");
+    } catch (err: any) {
+      console.error("[PKCE] Error:", err);
+      setErrorMsg(err.message || "Something went wrong");
+      setStatus("error");
+    }
+  }
+
+  const btnStyle = { background: "#1DB954", color: "#fff", border: "none", padding: "16px 32px", borderRadius: 8, fontSize: 18, cursor: "pointer" } as const;
+
   return (
     <div style={{ minHeight: "100vh", background: "#111", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", padding: 20 }}>
       <div style={{ maxWidth: 600, width: "100%", textAlign: "center" }}>
-        <h1 style={{ fontSize: 24, marginBottom: 32 }}>Spotify PKCE Test</h1>
 
         {status === "idle" && (
-          <button onClick={login} style={{ background: "#1DB954", color: "#fff", border: "none", padding: "16px 32px", borderRadius: 8, fontSize: 18, cursor: "pointer" }}>
-            Connect with Spotify
-          </button>
+          <>
+            <h1 style={{ fontSize: 24, marginBottom: 32 }}>Spotify PKCE Test</h1>
+            <button onClick={login} style={btnStyle}>Connect with Spotify</button>
+          </>
         )}
 
         {status === "redirecting" && <p>Redirecting to Spotify…</p>}
@@ -80,7 +136,30 @@ export default function Index() {
             <p style={{ color: "#1DB954", fontSize: 20, marginBottom: 16 }}>✅ OAuth Success</p>
             <p><strong>Code:</strong></p>
             <p style={{ wordBreak: "break-all", fontSize: 12, color: "#aaa", marginBottom: 16 }}>{code}</p>
-            <p><strong>Round-trip time:</strong> {(elapsed / 1000).toFixed(1)}s</p>
+            <p style={{ marginBottom: 20 }}><strong>Round-trip time:</strong> {(elapsed / 1000).toFixed(1)}s</p>
+            <div style={{ textAlign: "center" }}>
+              <button onClick={exchangeAndFetchProfile} style={btnStyle}>Continue</button>
+            </div>
+          </div>
+        )}
+
+        {status === "exchanging" && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+            <div style={{ width: 40, height: 40, border: "4px solid #333", borderTopColor: "#1DB954", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+            <p>Connecting to Spotify…</p>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
+
+        {status === "profile" && profile && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
+            {profile.images?.[0]?.url ? (
+              <img src={profile.images[0].url} alt={profile.display_name} style={{ width: 120, height: 120, borderRadius: "50%", border: "3px solid #1DB954" }} />
+            ) : (
+              <div style={{ width: 120, height: 120, borderRadius: "50%", background: "#333", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, border: "3px solid #1DB954" }}>🎵</div>
+            )}
+            <h2 style={{ fontSize: 24, margin: 0 }}>{profile.display_name}</h2>
+            <button onClick={() => alert("Playlists coming soon")} style={btnStyle}>Continue to Playlists</button>
           </div>
         )}
 
