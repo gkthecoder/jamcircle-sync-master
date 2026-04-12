@@ -252,7 +252,7 @@ export default function Index() {
           <div style={{ textAlign: "left", background: "#331111", padding: 24, borderRadius: 12 }}>
             <p style={{ color: "#ff4444", fontSize: 20, marginBottom: 16 }}>❌ Error</p>
             <p>{errorMsg}</p>
-            <button onClick={() => { localStorage.clear(); window.location.reload(); }} style={{ marginTop: 16, background: "#ff4444", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 6, cursor: "pointer" }}>
+            <button onClick={() => { [TOKEN_KEY, VERIFIER_KEY, START_KEY].forEach(k => localStorage.removeItem(k)); window.location.replace("/"); }} style={{ marginTop: 16, background: "#ff4444", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 6, cursor: "pointer" }}>
               Try Again
             </button>
           </div>
