@@ -120,6 +120,47 @@ export default function Index() {
     }
   }
 
+  function extractPlaylistId(input: string): string | null {
+    const urlMatch = input.match(/playlist\/([a-zA-Z0-9]+)/);
+    if (urlMatch) return urlMatch[1];
+    const uriMatch = input.match(/spotify:playlist:([a-zA-Z0-9]+)/);
+    return uriMatch ? uriMatch[1] : null;
+  }
+
+  async function loadPlaylist() {
+    const id = extractPlaylistId(playlistUrl);
+    if (!id) { setErrorMsg("Invalid playlist URL or URI"); setStatus("error"); return; }
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { setErrorMsg("No access token found. Please reconnect."); setStatus("error"); return; }
+
+    setLoadingTracks(true);
+    setTracks([]);
+    console.log("[Playlist] Loading playlist:", id);
+
+    try {
+      const res = await fetch(`https://api.spotify.com/v1/playlists/${id}/tracks?limit=50`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      console.log("[Playlist] Response status:", res.status);
+
+      if (!res.ok) throw new Error(data.error?.message || "Failed to load playlist");
+
+      const items: Track[] = data.items
+        .filter((i: any) => i.track)
+        .map((i: any) => ({ name: i.track.name, artists: i.track.artists, album: i.track.album }));
+
+      console.log("[Playlist] Loaded", items.length, "tracks");
+      setTracks(items);
+    } catch (err: any) {
+      console.error("[Playlist] Error:", err);
+      setErrorMsg(err.message);
+      setStatus("error");
+    } finally {
+      setLoadingTracks(false);
+    }
+  }
+
   const btnStyle = { background: "#1DB954", color: "#fff", border: "none", padding: "16px 32px", borderRadius: 8, fontSize: 18, cursor: "pointer" } as const;
 
   return (
@@ -163,7 +204,46 @@ export default function Index() {
               <div style={{ width: 120, height: 120, borderRadius: "50%", background: "#333", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, border: "3px solid #1DB954" }}>🎵</div>
             )}
             <h2 style={{ fontSize: 24, margin: 0 }}>{profile.display_name}</h2>
-            <button onClick={() => alert("Playlists coming soon")} style={btnStyle}>Continue to Playlists</button>
+            <button onClick={() => setStatus("playlists")} style={btnStyle}>Continue to Playlists</button>
+          </div>
+        )}
+
+        {status === "playlists" && (
+          <div style={{ textAlign: "left" }}>
+            <h2 style={{ fontSize: 22, marginBottom: 16, textAlign: "center" }}>Load a Playlist</h2>
+            <input
+              type="text"
+              placeholder="Paste Spotify playlist URL or URI…"
+              value={playlistUrl}
+              onChange={(e) => setPlaylistUrl(e.target.value)}
+              style={{ width: "100%", padding: 12, borderRadius: 8, border: "1px solid #333", background: "#222", color: "#fff", fontSize: 14, boxSizing: "border-box", marginBottom: 12 }}
+            />
+            <div style={{ textAlign: "center", marginBottom: 24 }}>
+              <button onClick={loadPlaylist} disabled={loadingTracks || !playlistUrl.trim()} style={{ ...btnStyle, opacity: loadingTracks || !playlistUrl.trim() ? 0.5 : 1 }}>
+                {loadingTracks ? "Loading…" : "Load Playlist"}
+              </button>
+            </div>
+
+            {loadingTracks && (
+              <div style={{ display: "flex", justifyContent: "center", padding: 20 }}>
+                <div style={{ width: 32, height: 32, border: "3px solid #333", borderTopColor: "#1DB954", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              </div>
+            )}
+
+            {tracks.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {tracks.map((t, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, background: "#1a1a1a", padding: 10, borderRadius: 8 }}>
+                    <img src={t.album.images?.[t.album.images.length - 1]?.url || ""} alt="" style={{ width: 48, height: 48, borderRadius: 4, flexShrink: 0 }} />
+                    <div style={{ overflow: "hidden" }}>
+                      <p style={{ margin: 0, fontWeight: "bold", fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.name}</p>
+                      <p style={{ margin: 0, fontSize: 12, color: "#aaa", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.artists.map(a => a.name).join(", ")}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
